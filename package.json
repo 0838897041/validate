@@ -1,0 +1,13 @@
+{
+  "name": "validate-sample",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "ajv": "8.12.0",
+    "ajv-formats": "2.1.1"
+  },
+  "devDependencies": {
+    "ajv-cli": "5.0.0"
+  }
+}

@@ -1,0 +1,6 @@
+.venv/
+node_modules/
+npm-debug.log
+artifacts/
+*.pyc
+__pycache__/
