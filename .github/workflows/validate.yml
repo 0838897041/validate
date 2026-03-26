@@ -1,27 +1,54 @@
 name: Validate JSON Workflow
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.11'
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
+
       - name: Install Python deps
         run: |
           python -m venv .venv
           . .venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
+
       - name: Install Node deps
         run: npm ci
-      - name: Run workflow
+
+      - name: Run bootstrap
+        run: |
+          . .venv/bin/activate
+          ./bootstrap.sh
+
+      - name: Run validation workflow
         run: |
           . .venv/bin/activate
           ./workflow_validate.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: validate-artifacts
+          path: |
+            artifacts/**
+            output.json
+            artifacts/validate.log

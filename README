@@ -1,0 +1,26 @@
+1. Checkout tag snapshot: git checkout v1.0.0-locked
+2. Run ./bootstrap.sh
+3. Restore artifacts if registry unavailable:
+   - tar -xzf artifacts/node_modules.tgz
+   - pip install --no-index --find-links=artifacts/wheels -r requirements.txt
+4. Run ./workflow_validate.sh
+
+
+ขั้นตอน Recovery
+
+1. Checkout snapshot: git checkout v1.0.0-locked
+2. ./bootstrap.sh
+3. . .venv/bin/activate
+4. If registry unavailable:
+   - tar -xzf artifacts/node_modules-<ts>.tgz
+   - pip install --no-index --find-links=artifacts/wheels -r requirements.txt
+5. ./workflow_validate.sh
+6. Inspect artifacts/validate.log and artifacts/*.log for failures
+
+
+เวลาใช้งานใหม่่ให้รัน
+
+./bootstrap.sh
+. .venv/bin/activate
+npm ci
+./workflow_validate.sh
