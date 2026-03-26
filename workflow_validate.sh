@@ -171,23 +171,47 @@ JSON
   fi
 }
 
-# default processor: Python wrapper that writes atomically
+# default processor: Python wrapper that writes atomically and validates tmp JSON before mv
 default_process() {
   local tmp
   tmp="$(mktemp -p "$(dirname "$OUTPUT")" tmp.out.XXXXXX)" || { log "Failed to create tmp file"; return 30; }
-  "$PYTHON_CMD" - <<PYPY > "$tmp"
-import json,time,sys
-infile="$INPUT"
+
+  # Run Python script from heredoc; pass input and tmp paths as argv[1], argv[2]
+  "$PYTHON_CMD" - "$INPUT" "$tmp" <<'PY'
+import json, time, sys
+infile = sys.argv[1]
+tmpfile = sys.argv[2]
 try:
-    with open(infile,'r',encoding='utf-8') as f:
-        data=json.load(f)
+    with open(infile, 'r', encoding='utf-8') as f:
+        data = json.load(f)
 except Exception as e:
-    print("PROCESS ERROR reading input:", e); sys.exit(2)
-out={"result": data, "sourceId": data.get("id",0), "processedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
-with open("$tmp",'w',encoding='utf-8') as f:
-    json.dump(out,f,ensure_ascii=False,indent=2)
-print("WROTE", "$tmp")
-PYPY
+    print("PROCESS ERROR reading input: {}".format(e), file=sys.stderr)
+    sys.exit(2)
+
+out = {
+    "result": data,
+    "sourceId": data.get("id", 0),
+    "processedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+}
+
+try:
+    with open(tmpfile, 'w', encoding='utf-8') as f:
+        json.dump(out, f, ensure_ascii=False, indent=2)
+except Exception as e:
+    print("PROCESS ERROR writing tmpfile: {}".format(e), file=sys.stderr)
+    sys.exit(3)
+
+sys.exit(0)
+PY
+
+  # Verify tmp is valid JSON before moving
+  if ! "$PYTHON_CMD" -m json.tool "$tmp" >/dev/null 2>&1; then
+    local badlog="$ARTIFACT_DIR/invalid-output-$(date -u +%Y%m%dT%H%M%SZ).log"
+    log "Invalid JSON written to $tmp; saving to $badlog"
+    cp "$tmp" "$badlog" || true
+    return 32
+  fi
+
   mv "$tmp" "$OUTPUT"
   log "Processed $INPUT -> $OUTPUT (atomic)"
 }

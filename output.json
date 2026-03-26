@@ -1,4 +1,8 @@
-WROTE /data/data/com.termux/files/home/validate/tmp.out.i6RMUB
-ceId": 1,
-  "processedAt": "2026-03-26T13:54:23Z"
+{
+  "result": {
+    "id": 1,
+    "name": "example"
+  },
+  "sourceId": 1,
+  "processedAt": "2026-03-26T14:54:04Z"
 }
