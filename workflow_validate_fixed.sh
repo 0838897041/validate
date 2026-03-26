@@ -37,7 +37,9 @@ fi
 echo "=== post-validate output.json against all *schema*.json ==="
 FAIL=0
 mkdir -p artifacts logs
-TMPDIR="${TMPDIR:-$HOME/tmp}"\nmkdir -p "$TMPDIR"\nTMP_OUT="$(mktemp "$TMPDIR/validate_out.XXXXXX")"
+TMPDIR="${TMPDIR:-$HOME/tmp}"
+mkdir -p "$TMPDIR"
+TMP_OUT="$(mktemp "$TMPDIR/validate_out.XXXXXX")"
 
 for S in *schema*.json; do
   [ -f "$S" ] || continue
